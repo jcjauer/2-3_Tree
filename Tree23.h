@@ -7,6 +7,7 @@ typedef struct TreeNode {
     void *element;
     struct TreeNode *left;
     struct TreeNode *right;
+    struct TreeNode *middle;
 } TreeNode;
 
 /*

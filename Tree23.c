@@ -6,6 +6,7 @@ int add(TreeNode **root, void *element, TreeComparator f) {
         if(newNode == NULL)  return -1;
         newNode->left = NULL;
         newNode->right = NULL;
+        newNode->middle = NULL;
         newNode->element = element;
         (*root) = newNode;
         return 1;

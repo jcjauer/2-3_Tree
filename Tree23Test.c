@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+<<<<<<< HEAD
 //Elemento que será guardado na árvore
 typedef struct TreeElement {
     int data;

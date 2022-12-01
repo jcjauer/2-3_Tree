@@ -12,6 +12,7 @@ typedef struct TreeNode {
     struct TreeNode *left;
     struct TreeNode *middle;
     struct TreeNode *right;
+    struct TreeNode *middle;
 } TreeNode;
 /*
 - O usuário da biblioteca deve fornecer uma função para comparação dos elementos

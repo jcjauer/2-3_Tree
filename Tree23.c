@@ -1,62 +1,159 @@
 #include "Tree23.h"
 
-int add(TreeNode **root, void *element, TreeComparator f) {
+int add(TreeNode **root, void **element, TreeComparator f) {
+    // Verifica se exite raiz
     if((*root) == NULL) {
-        TreeNode *newNode = (TreeNode *)malloc(sizeof(TreeNode));
-        if(newNode == NULL)  return -1;
-        newNode->left = NULL;
-        newNode->right = NULL;
-        newNode->element = element;
-        (*root) = newNode;
+        *root = newNode();
+        if((*root) == NULL)  return 0;
+    }
+    // Adiciona elemento nas folhas
+    if((*root)->left == NULL && (*root)->middle == NULL && (*root)->right == NULL) {
+        if((*root)->dataleft == NULL) {
+            (*root)->dataleft = *element;
+            *element = NULL;
+            return 1;
+        }
+        else {
+            int compleft = f(*element, (*root)->dataleft);
+            if(compleft == 0) {
+                *element = NULL;
+                return -1;
+            }
+            else if((*root)->dataright == NULL) {
+                if(compleft < 0) {
+                    (*root)->dataright = (*root)->dataleft;
+                    (*root)->dataleft = *element;
+                    *element = NULL;
+                    return 1;
+                }
+                else {
+                    (*root)->dataright = *element;
+                    *element = NULL;
+                    return 1;
+                }
+            }
+            else {
+                int compright = f(*element, (*root)->dataright);
+                if(compright == 0) {
+                    *element = NULL;
+                    return -1;
+                }
+                return split(root, element, f);
+            }
+        }    
+    }
+    // Adiciona elemento em no com um dado e dois filhos
+    else if((*root)->dataleft != NULL && (*root)->dataright == NULL) {
+        int compleft = f(*element, (*root)->dataleft);
+        if(compleft == 0){
+            *element == NULL;
+            return -1;
+        }
+        else if(compleft < 0) {
+            return add(&(*root)->left, element, f);
+        }
+        else {
+            return add(&(*root)->middle, element, f);
+        }
+    }
+    // Adiciona elemento em um no com dois dados e tres filhos
+    else if((*root)->dataleft != NULL && (*root)->dataright != NULL) {
+        int compleft = f(*element, (*root)->dataleft);
+        int compright = f(*element, (*root)->dataright);
+        if(compleft == 0 || compright == 0){
+            *element == NULL;
+            return -1;
+        }
+        else if(compleft < 0) {
+            return add(&(*root)->left, element, f);
+        }
+        else if(compright > 0) {
+            return add(&(*root)->right, element, f);
+        }
+        else {
+            return add(&(*root)->middle, element, f);
+        }
+    }
+    return 0;
+}
+
+TreeNode *newNode() {
+    TreeNode *newNode = (TreeNode *)malloc(sizeof(TreeNode));
+    if(newNode == NULL)  return NULL;
+    newNode->root = NULL;
+    newNode->left = NULL;
+    newNode->middle = NULL;
+    newNode->right = NULL;
+    newNode->dataleft = NULL;
+    newNode->dataright = NULL;
+    return newNode;
+}
+
+int split(TreeNode **root, void **element, TreeComparator f) {
+    if(*element == NULL) return 1;
+    // Encotra o elemento que tem que subir na arvore
+    int compleft = f(*element, (*root)->dataleft);
+    int compright = f(*element, (*root)->dataright);
+    void *aux;
+    if(compleft < 0) {
+        aux = (*root)->dataleft;
+        (*root)->dataleft = *element;
+        *element = aux;  
+    }
+    else if(compright > 0) {
+        aux = (*root)->dataright;
+        (*root)->dataright = *element;
+        *element = aux;
+    }
+    // Se o elemento tem que subir e nao existe raiz, criamos uma nova raiz
+    if((*root)->root == NULL){
+        TreeNode *auxNode = *root;
+        *root = newNode();
+        (*root)->dataleft = *element;
+        *element = NULL;
+        (*root)->left = auxNode;
+        (*root)->left->root = *root;
+        (*root)->middle = newNode();
+        (*root)->middle->root = *root;
+        (*root)->middle->dataleft = (*root)->left->dataright;
+        (*root)->left->dataright = NULL;
         return 1;
     }
-    int compvalue = f(element, (*root)->element);
-    if(compvalue > 0) { 
-        return add(&(*root)->right, element, f);
+    // Se o no tem um dado e dois filhos, adicionamos o elemento nele
+    else if((*root)->root->dataleft != NULL && (*root)->root->dataright == NULL) {
+        compleft = f(*element, (*root)->root->dataleft);
+        if(compleft < 0) {
+            TreeNode *auxRoot = (*root)->root;
+            auxRoot->dataright = auxRoot->dataleft;
+            auxRoot->dataleft = *element;
+            *element = NULL;
+            auxRoot->right = auxRoot->middle;
+            auxRoot->middle = newNode();
+            auxRoot->middle->root = auxRoot;
+            auxRoot->middle->dataleft = auxRoot->left->dataright;
+            auxRoot->left->dataright = NULL;
+            return 1;
+        }
+        else {
+            TreeNode *auxRoot = (*root)->root;
+            auxRoot->dataright = *element;
+            *element = NULL;
+            auxRoot->right = newNode();
+            auxRoot->right->root = auxRoot;
+            auxRoot->right->dataleft = auxRoot->middle->dataright;
+            auxRoot->middle->dataright = NULL;
+            return 1;
+        }
     }
-    else if(compvalue < 0){
-        return add(&(*root)->left, element, f);
+    // Se o no tem dois dados e tres filhos, chamamos split novamente
+    else if((*root)->dataleft != NULL && (*root)->dataright != NULL) {
+        printf("\n23\n\n");
+        return split(&(*root)->root, element, f);
     }
-    else {
-        return -1;
-    }
+    return 0;
 }
 
-int find(TreeNode *root, void *key, TreeComparator f, void **element) {
-    if(root == NULL) return 0;
-    int compvalue = f(key, root->element);
-    if(compvalue == 0) {
-        *element = root->element;
-        return 1;
-    }
-    if(compvalue > 0) return find(root->right, key, f, element);
-    return find(root->left, key, f, element);
-}
-
-void in_order(TreeNode *root, printNode print) {
-    if(root != NULL) {
-        in_order(root->left, print);
-        print(root->element);
-        in_order(root->right, print);
-    }
-}
-
-void pre_order(TreeNode *root, printNode print) {
-    if(root != NULL) {
-        print(root->element);
-        pre_order(root->left, print);
-        pre_order(root->right, print);
-    }
-}
-
-void post_order(TreeNode *root, printNode print) {
-    if(root != NULL) {
-        print(root->element); 
-        post_order(root->left, print);
-        post_order(root->right, print);
-    }
-}
-
+/*
 int removeTreeNode(TreeNode **root, void *key, TreeComparator f) {
     if((*root) == NULL) return 0;
     int compvalue = f(key, (*root)->element);
@@ -110,55 +207,63 @@ int removeTreeNode(TreeNode **root, void *key, TreeComparator f) {
         }
     }
 }
+*/
+
+int find(TreeNode *root, void *key, TreeComparator f, void **element) {
+    if(root == NULL) return 0;
+    int compleft = f(key, root->dataleft);
+    if(compleft < 0) {
+        return find(root->left, key, f, element);
+    }
+    else if(compleft == 0) {
+        *element = root->dataleft;
+        return 1;
+    }
+    else if(compleft > 0) {
+        if(root->dataright != NULL) {
+            int compright = f(key, root->dataright);
+            if(compright == 0) {
+                *element = root->dataright;
+                return 1;
+            }
+            else if(compright > 0) {
+                return find(root->right, key, f, element);
+            }
+        }
+        return find(root->middle, key, f, element);
+    }
+}
+
+void show(TreeNode *root, printNode print) {
+    if(root != NULL) {
+        printf("( ");
+            show(root->left, print);
+
+            print(root->dataleft);
+
+            show(root->middle, print);
+
+            print(root->dataright);
+
+            show(root->right, print);
+        printf(") ");
+    }
+}
 
 int height (TreeNode *root) {
     if(root == NULL) {
         return -1;
     }
     else {
-        int hl = height(root->left);
-        int hr = height(root->right);
-        if (hl > hr) return hl + 1;
-        return hr + 1;
+        return 1 + height(root->left);
     }
 }
 
 void destroy (TreeNode **root) {
-    if (*root==NULL) return;
+    if ((*root) == NULL) return;
     destroy(&(*root)->left);
+    destroy(&(*root)->middle);
     destroy(&(*root)->right);
     free(*root);
-    *root=NULL;
-}
-
-TreeNode *smallerLeft(TreeNode **no) {
-    if((*no)->left != NULL) {
-        return smallerLeft(&(*no)->left);
-    }
-    else {
-        TreeNode *aux = *no;
-        if((*no)->right != NULL) {
-            *no = (*no)->right;
-        }
-        else {
-            *no = NULL;
-        }
-        return aux;
-    }
-}
-
-TreeNode *greaterRight(TreeNode **no) {
-    if((*no)->right != NULL) {
-        return greaterRight(&(*no)->right);
-    }
-    else {
-        TreeNode *aux = *no;
-        if((*no)->left != NULL) {
-            *no = (*no)->left;
-        }
-        else {
-            *no = NULL;
-        }
-        return aux;
-    }
+    (*root) = NULL;
 }

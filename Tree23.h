@@ -38,7 +38,7 @@ typedef void (*printNode)(void *data);
 - - new root
 - - split
 */
-int add(TreeNode **root, void **element, TreeComparator f);
+int add(TreeNode **treeRoot, TreeNode **root, void **element, TreeComparator f);
 /*
 - Cria uma nova raiz
 *
@@ -64,7 +64,7 @@ TreeNode *newNode();
 - - 1 em caso de sucesso
 - - 0 caso não faça nada
 */
-int split(TreeNode **root, void **element, TreeComparator f);
+int split(TreeNode **treeRoot, TreeNode **root,  void **element, TreeComparator f);
 /*
 - Ecolhe a mediana
 *

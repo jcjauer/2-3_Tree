@@ -44,7 +44,7 @@ int main () {
                 printf("Digite o elemento: ");
                 scanf("%d", &(*element).data);
                 void *aux = element;
-                add(&root, &aux, IntergerComparator);
+                add(&root, &root, &aux, IntergerComparator);
                 printf("Altura da árvore: %d\n", height(root));
                 printf("Árvore:\n");
                 show(root, printInteger);

@@ -1,6 +1,6 @@
 #include "Tree23.h"
 
-int add(TreeNode **root, void **element, TreeComparator f) {
+int add(TreeNode **treeRoot, TreeNode **root, void **element, TreeComparator f) {
     // Verifica se exite raiz
     if((*root) == NULL) {
         *root = newNode();
@@ -10,35 +10,30 @@ int add(TreeNode **root, void **element, TreeComparator f) {
     if((*root)->left == NULL && (*root)->middle == NULL && (*root)->right == NULL) {
         if((*root)->dataleft == NULL) {
             (*root)->dataleft = *element;
-            *element = NULL;
             return 1;
         }
         else {
             int compleft = f(*element, (*root)->dataleft);
             if(compleft == 0) {
-                *element = NULL;
                 return -1;
             }
             else if((*root)->dataright == NULL) {
                 if(compleft < 0) {
                     (*root)->dataright = (*root)->dataleft;
                     (*root)->dataleft = *element;
-                    *element = NULL;
                     return 1;
                 }
                 else {
                     (*root)->dataright = *element;
-                    *element = NULL;
                     return 1;
                 }
             }
             else {
                 int compright = f(*element, (*root)->dataright);
                 if(compright == 0) {
-                    *element = NULL;
                     return -1;
                 }
-                return split(root, element, f);
+                return split(treeRoot, root, element, f);
             }
         }    
     }
@@ -46,14 +41,13 @@ int add(TreeNode **root, void **element, TreeComparator f) {
     else if((*root)->dataleft != NULL && (*root)->dataright == NULL) {
         int compleft = f(*element, (*root)->dataleft);
         if(compleft == 0){
-            *element == NULL;
             return -1;
         }
         else if(compleft < 0) {
-            return add(&(*root)->left, element, f);
+            return add(treeRoot, &(*root)->left, element, f);
         }
         else {
-            return add(&(*root)->middle, element, f);
+            return add(treeRoot, &(*root)->middle, element, f);
         }
     }
     // Adiciona elemento em um no com dois dados e tres filhos
@@ -61,17 +55,16 @@ int add(TreeNode **root, void **element, TreeComparator f) {
         int compleft = f(*element, (*root)->dataleft);
         int compright = f(*element, (*root)->dataright);
         if(compleft == 0 || compright == 0){
-            *element == NULL;
             return -1;
         }
         else if(compleft < 0) {
-            return add(&(*root)->left, element, f);
+            return add(treeRoot, &(*root)->left, element, f);
         }
         else if(compright > 0) {
-            return add(&(*root)->right, element, f);
+            return add(treeRoot, &(*root)->right, element, f);
         }
         else {
-            return add(&(*root)->middle, element, f);
+            return add(treeRoot, &(*root)->middle, element, f);
         }
     }
     return 0;
@@ -89,9 +82,7 @@ TreeNode *newNode() {
     return newNode;
 }
 
-int split(TreeNode **root, void **element, TreeComparator f) {
-    if((*root) == NULL) return 0;
-    if(*element == NULL) return 1;
+int split(TreeNode **treeRoot, TreeNode **root, void **element, TreeComparator f) {
     // Encontra o elemento que tem que subir na arvore
     chooseElement(*root, element, f); 
     // Se o elemento tem que subir e nao existe raiz, criamos uma nova raiz
@@ -100,7 +91,6 @@ int split(TreeNode **root, void **element, TreeComparator f) {
         *root = newNode();
         if((*root) == NULL)  return 0;
         (*root)->dataleft = *element;
-        *element = NULL;
         (*root)->left = auxNode;
         (*root)->left->root = *root;
         (*root)->middle = newNode();
@@ -117,7 +107,6 @@ int split(TreeNode **root, void **element, TreeComparator f) {
             TreeNode *auxRoot = (*root)->root;
             auxRoot->dataright = auxRoot->dataleft;
             auxRoot->dataleft = *element;
-            *element = NULL;
             auxRoot->right = auxRoot->middle;
             auxRoot->middle = newNode();
             if(auxRoot->middle == NULL)  return 0;
@@ -129,7 +118,6 @@ int split(TreeNode **root, void **element, TreeComparator f) {
         else {
             TreeNode *auxRoot = (*root)->root;
             auxRoot->dataright = *element;
-            *element = NULL;
             auxRoot->right = newNode();
             if(auxRoot->right == NULL)  return 0;
             auxRoot->right->root = auxRoot;
@@ -140,62 +128,40 @@ int split(TreeNode **root, void **element, TreeComparator f) {
     }
     // Se o no tem dois dados e tres filhos
     else if((*root)->root->dataleft != NULL && (*root)->root->dataright != NULL) {
-        int compleft = f(*element, (*root)->root->dataleft);
-        int compright = f(*element, (*root)->root->dataright);
-        
-        TreeNode *auxRoot = (*root)->root;
-        TreeNode *auxNode = newNode();
-        if(auxNode == NULL)  return 0;
-        auxNode->root = auxRoot->root;
-        printf("\nCheguei\n");
-        chooseElement(auxRoot, element, f);
-        if(compleft < 0) {
-           /*  auxNode->dataleft = auxRoot->dataright;
-            auxRoot->dataright = NULL;
-            auxNode->left = auxRoot->middle;
-            auxNode->middle = auxRoot->right;
-            auxRoot->right = NULL;
+        TreeNode *auxNode = (*root)->root;
+        int compleft = f(*element, auxNode->dataleft);
+        int compright = f(*element, auxNode->dataright);
+        chooseElement(auxNode, element, f);
 
-            auxRoot->middle = newNode();
-            if(auxRoot->middle == NULL)  return 0;
-            auxRoot->middle->root = auxRoot;
-            auxRoot->middle->dataleft = auxRoot->left->dataright;
-            auxRoot->left->dataright = NULL; */
+        TreeNode *auxRoot = newNode();
+        auxRoot->root = auxNode->root;
+        auxRoot->dataleft = *element;
+        auxRoot->left = auxNode;
+        auxNode->root = auxRoot;
+        auxRoot->middle = newNode();
+        auxRoot->middle->root = auxRoot;
+        auxRoot->middle->dataleft = auxNode->dataright;
+        auxNode->dataright = NULL;
+
+        if(compleft < 0) {
+            auxRoot->middle->left = auxNode->middle;
+            auxRoot->middle->left->root = auxRoot->middle->left;
+            auxRoot->middle->middle = auxNode->right;
+            auxRoot->middle->middle->root = auxRoot->middle->middle; 
+            auxNode->right = NULL;
+            auxNode->middle = newNode();
+            auxNode->middle->root = auxNode->middle;
+            auxNode->middle->dataleft = auxNode->left->dataright;
+            auxNode->left->dataright = NULL;
         }
         else if(compright > 0) {
-            /* auxNode->dataleft = auxRoot->dataright;
-            auxRoot->dataright = NULL;
-            auxNode->left = auxRoot->right;
-            auxRoot->right = NULL;
 
-            auxNode->middle = newNode();
-            auxNode->middle->root = auxRoot;
-            auxNode->middle->dataleft = auxNode->left->dataright;
-            auxNode->left->dataright = NULL; */
         }
         else {
-            /* auxNode->dataleft = auxRoot->dataright;
-            auxRoot->dataright = NULL;
-            auxNode->middle = auxRoot->right;
-            auxRoot->right = NULL;
 
-            auxNode->left = newNode();
-            auxNode->left->root = auxNode;
-            auxNode->left->dataleft = auxRoot->middle->dataright;
-            auxRoot->middle->dataright = NULL; */
         }
-        TreeNode *newRoot = newNode();
-        if(newRoot == NULL) return 0;
-        newRoot->root = (*root)->root;
-        (*root)->root = newRoot;
-        newRoot->left = auxRoot;
-        newRoot->left->root = newRoot;
-        newRoot->middle = auxNode;
-        newRoot->middle->root = newRoot;
-        newRoot->dataleft = *element;
-        *element = NULL;
-        *root = newRoot;
-        return 1; //split(&(*root)->root, element, f);
+        *treeRoot = auxRoot;
+        return 1;
     }
     return 0;
 }

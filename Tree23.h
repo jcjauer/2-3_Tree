@@ -53,7 +53,7 @@ int add(TreeNode **root, void **element, TreeComparator f);
 */
 TreeNode *newNode();
 /*
-- Transforma um nó mais un elemento em três nós
+- Equilibra a arvore
 *
 - Argumentos: 
 - - root: O endereço do ponteiro da raiz da árvore/subárvore
@@ -61,10 +61,23 @@ TreeNode *newNode();
 - - f: a função para comparação dos elementos
 *
 - Retorna: 
-- - o ponteiro da raiz em caso de sucesso
-- - NULL caso não tenha mais memória
+- - 1 em caso de sucesso
+- - 0 caso não faça nada
 */
 int split(TreeNode **root, void **element, TreeComparator f);
+/*
+- Ecolhe a mediana
+*
+- Argumentos: 
+- - root: o endereço do ponteiro da raiz da árvore/subárvore
+- - element: o endereço do elemento para as devidas alterações
+- - f: a função para comparação dos elementos
+*
+- Retorna: 
+- - 1 em caso de sucesso
+- - 0 caso não encontre
+*/
+void chooseElement(TreeNode *root, void **element, TreeComparator f);
 /*
 - Remove um elemento na árvore
 *

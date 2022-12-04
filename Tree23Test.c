@@ -59,7 +59,10 @@ int main () {
                 if(find(root, element, &IntergerComparator, &auxFind) == 1) {
                     TreeElement *auxPrint = (TreeElement *) auxFind;
                     printf("Elemento encontrado: "); printInteger(auxPrint); printf("\n");
-                } 
+                }
+                else {
+                    printf("Elemento não encontrado ou inexistente.\n");
+                }
                 break;
             case 0 :
                 printf("\n");

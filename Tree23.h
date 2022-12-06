@@ -87,10 +87,23 @@ void chooseElement(TreeNode *root, void **element, TreeComparator f);
 - - f: a função para comparação dos elementos
 *
 - Retorna: 
-- - 1 em caso de sucesso
-- - 0 caso não encontre
+- - ponteiro do dado em caso de sucesso
+- - NULL caso não encontre
 */
-int removeTreeNode(TreeNode **root, void *key, TreeComparator f);
+void* removeTreeNode(TreeNode **treeRoot, TreeNode **root, void *key, TreeComparator f);
+/*
+- Ajuda a remover um elemento na árvore
+*
+- Argumentos: 
+- - root: A raiz da árvore/subárvore
+- - key: o elemento a ser localizado e removido
+- - f: a função para comparação dos elementos
+*
+- Retorna: 
+- - ponteiro do dado em caso de sucesso
+- - NULL caso não encontre
+*/
+void* removeSplit(TreeNode **treeRoot, TreeNode **root, void *key, TreeComparator f);
 /*
 - Localiza um elemento na árvore
 *

@@ -35,6 +35,8 @@ int main () {
         printf("Escolha uma opção: \n");
         printf("(1) - Adicionar elemento;\n");
         printf("(2) - Encontrar elemento;\n");
+        printf("(3) - Remover elemento;\n");
+        printf("(4) - Ver arvore;\n");
         printf("(0) - Sair.\n");
         scanf("%d", &opc);
         switch ( opc ) {
@@ -63,6 +65,30 @@ int main () {
                 else {
                     printf("Elemento não encontrado ou inexistente.\n");
                 }
+                break;
+            case 3 :
+                element = (TreeElement *)malloc(sizeof(TreeElement));
+                if(element == NULL) break;
+                printf("Digite o elemento: ");
+                scanf("%d", &(*element).data);
+                void *auxRemoveNode = element;
+                aux = removeTreeNode(&root, &root, auxRemoveNode, IntergerComparator);
+                if(aux != NULL) {
+                    TreeElement *auxRemoveNode = (TreeElement *) aux;
+                    printf("Elemento encontrado: "); printInteger(auxRemoveNode); printf(". Removido.\n");
+                    aux = NULL;
+                    free(auxRemoveNode);
+                    auxRemoveNode = NULL;
+                }
+                else {
+                    printf("Elemento não removido ou inexistente.\n");
+                }
+                break;
+            case 4 :
+                printf("Altura da árvore: %d\n", height(root));
+                printf("Árvore:\n");
+                show(root, printInteger);
+                printf("\n");
                 break;
             case 0 :
                 printf("\n");

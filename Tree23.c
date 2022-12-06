@@ -195,61 +195,424 @@ void chooseElement(TreeNode *root, void **element, TreeComparator f) {
     }
 }
 
-/*
-int removeTreeNode(TreeNode **root, void *key, TreeComparator f) {
-    if((*root) == NULL) return 0;
-    int compvalue = f(key, (*root)->element);
-    if(compvalue < 0) {
-        removeTreeNode(&(*root)->left, key, f);
-    }
-    else if(compvalue > 0) {
-        removeTreeNode(&(*root)->right, key, f);
+void* removeTreeNode(TreeNode **treeRoot, TreeNode **root, void *key, TreeComparator f) {
+    if((*root) == NULL) return NULL;
+    int compleft = f(key, (*root)->dataleft);
+    if(compleft < 0) {
+        return removeTreeNode(treeRoot, &(*root)->left, key, f);
     }
     else {
-        TreeNode *aux = *root;
-        if (((*root)->left == NULL) && ((*root)->right == NULL)) {
-            free(aux);
-            (*root) = NULL;
-        }
-        else if((*root)->left == NULL) {
-            (*root) = (*root)->right;
-            aux->right = NULL;
-            free(aux);
-            aux = NULL;
-        }
-        else if((*root)->right == NULL) {
-            (*root) = (*root)->left;
-            aux->left = NULL;
-            free(aux);
-            aux = NULL;
-        }
-        else {
-            int hl = height((*root)->left);
-            int hr = height((*root)->right);
-            if(hl > hr) {
-                aux = greaterRight(&(*root)->left);
-                aux->left = (*root)->left;
-                aux->right =  (*root)->right;
-                (*root)->left = NULL;
-                (*root)->right = NULL;
-                free(*root);
-                (*root) = aux;
-                aux = NULL;
+        if(compleft > 0) {
+            if((*root)->dataright == NULL) {
+                return removeTreeNode(treeRoot, &(*root)->middle, key, f);
             }
             else {
-                aux = smallerLeft(&(*root)->right);
-                aux->left = (*root)->left;
-                aux->right =  (*root)->right;
-                (*root)->left = NULL;
-                (*root)->right = NULL;
-                free(*root);
-                (*root) = aux;
-                aux = NULL;
+                int compright = f(key, (*root)->dataright);
+                if(compright < 0) {
+                    return removeTreeNode(treeRoot, &(*root)->middle, key, f);
+                }
+                else if(compright > 0) {
+                    return removeTreeNode(treeRoot, &(*root)->right, key, f);
+                }
+                // Remover dataright
+                else {
+                    return removeSplit(treeRoot, root, key, f);
+                }
+            }
+        }
+        // Remover dataleft
+        else {
+            return removeSplit(treeRoot, root, key, f);
+        }
+    }
+    return NULL;
+}
+
+void* removeSplit(TreeNode **treeRoot, TreeNode **root, void *key, TreeComparator f) {
+    int compleft = f(key, (*root)->dataleft);
+    void *aux = NULL;
+    TreeNode *auxNode = NULL;
+    //e raiz
+    if((*root)->root == NULL) {
+        if(compleft != 0) {
+            aux = (*root)->dataright;
+            (*root)->dataright = NULL;
+            return aux;
+        }
+        else {
+            aux = (*root)->dataleft;
+            (*root)->dataleft = NULL;
+            return aux;
+        }
+    }
+    //e folha
+    if((*root)->left == NULL) {
+        // remove dataright
+        if(compleft != 0) {
+            aux = (*root)->dataright;
+            (*root)->dataright = NULL;
+            return aux;
+        }
+        // remove dataleft
+        else {
+            // dataleft recebe o dataright
+            if((*root)->dataright != NULL) {
+                aux = (*root)->dataleft;
+                (*root)->dataleft = (*root)->dataright;
+                (*root)->dataright = NULL;
+                return aux;
+            }
+            // dataleft recebe um valor do nó anterior
+            else {
+                aux = (*root)->dataleft;
+                (*root)->dataleft = NULL;
+                auxNode = (*root);
+                // subindo pela direita
+                if(auxNode->root->right == auxNode) {
+                    auxNode = auxNode->root;
+                    if(auxNode->middle->dataright != NULL) {
+                        auxNode->right->dataleft = auxNode->dataright;
+                        auxNode->dataright = auxNode->middle->dataright;
+                        auxNode->middle->dataright = NULL;
+                        return aux;
+                    }
+                    else {
+                        auxNode->middle->dataright = auxNode->dataright;
+                        auxNode->dataright = NULL;
+                        free(auxNode->right);
+                        auxNode->right = NULL;
+                        return aux;;
+                    }
+                }
+                // subindo pela esquerda
+                else if(auxNode->root->left == auxNode) {
+                    auxNode = auxNode->root;
+                    auxNode->left->dataleft = auxNode->dataleft;
+                    if(auxNode->middle->dataright != NULL) {
+                        auxNode->dataleft = auxNode->middle->dataleft;
+                        auxNode->middle->dataleft = auxNode->middle->dataright;
+                        auxNode->middle->dataright = NULL;
+                        return aux;
+                    }
+                    else {
+                        if(auxNode->dataright != NULL) {
+                            auxNode->dataleft = auxNode->middle->dataleft;
+                            auxNode->middle->dataleft = auxNode->dataright;
+                            if(auxNode->right->dataright != NULL) {
+                                auxNode->dataright = auxNode->right->dataleft;
+                                auxNode->right->dataleft = auxNode->right->dataright;
+                                auxNode->right->dataright = NULL;
+                                return aux;
+                            }
+                            else {
+                                auxNode->middle->dataright = auxNode->right->dataleft;
+                                auxNode->right->dataleft = NULL;
+                                auxNode->dataright = NULL;
+                                free(auxNode->right);
+                                auxNode->dataright = NULL;
+                                return aux;
+                            }
+                        }
+                        // continua subindo
+                        else {
+                            auxNode->left->dataright = auxNode->middle->dataleft;
+                            auxNode->middle->dataleft = NULL;
+                            free(auxNode->middle);
+                            auxNode->middle = NULL;
+                            // continua >>>
+                        }
+                    }
+                }
+                // subindo pelo meio
+                else {
+                    auxNode = auxNode->root;
+                    if(auxNode->dataright != NULL) {
+                        auxNode->middle->dataleft = auxNode->dataright;
+                        if(auxNode->right->dataright != NULL) {
+                            auxNode->dataright = auxNode->right->dataleft;
+                            auxNode->right->dataleft = auxNode->right->dataright;
+                            auxNode->right->dataright = NULL;
+                            return aux;
+                        }
+                        else {
+                            auxNode->middle->dataright = auxNode->right->dataleft;
+                            auxNode->right->dataleft = NULL;
+                            auxNode->dataright = NULL;
+                            free(auxNode->right);
+                            auxNode->right = NULL;
+                            return aux;
+                        }
+                    }
+                    else {
+                        if(auxNode->left->dataright != NULL) {
+                            auxNode->middle->dataleft = auxNode->dataleft;
+                            auxNode->dataleft = auxNode->left->dataright;
+                            auxNode->left->dataright = NULL;
+                            return aux;
+                        }
+                        // continua subindo
+                        else {
+                            auxNode->left->dataright = auxNode->middle->dataleft;
+                            auxNode->middle->dataleft = NULL;
+                            free(auxNode->middle);
+                            auxNode->middle = NULL;
+                            //continua >>>
+                        }
+                    }
+                }
             }
         }
     }
+    //nao e folha
+    else {
+        //remove dataright
+        if(compleft != 0) {
+            aux = (*root)->dataright;
+            auxNode = (*root);
+            ////////////////////////////////////////////// BUSCA O MENOR auxNode->right
+            auxNode = auxNode->right;
+            while(auxNode->left != NULL) {
+                auxNode = auxNode->left;
+            }
+            (*root)->dataright = auxNode->dataleft;
+            if(auxNode->dataright != NULL) {
+                auxNode->dataleft = auxNode->dataright;
+                auxNode->dataright = NULL;
+                return aux;
+            }
+            else {
+                auxNode->dataleft = NULL;
+                // subindo pela esquerda
+                if(auxNode->root->left == auxNode) {
+                    auxNode = auxNode->root;
+                    auxNode->left->dataleft = auxNode->dataleft;
+                    if(auxNode->middle->dataright != NULL) {
+                        auxNode->dataleft = auxNode->middle->dataleft;
+                        auxNode->middle->dataleft = auxNode->middle->dataright;
+                        auxNode->middle->dataright = NULL;
+                        return aux;
+                    }
+                    else {
+                        if(auxNode->dataright != NULL) {
+                            auxNode->dataleft = auxNode->middle->dataleft;
+                            auxNode->middle->dataleft = auxNode->dataright;
+                            if(auxNode->right->dataright != NULL) {
+                                auxNode->dataright = auxNode->right->dataleft;
+                                auxNode->right->dataleft = auxNode->right->dataright;
+                                auxNode->right->dataright = NULL;
+                                return aux;
+                            }
+                            else {
+                                auxNode->middle->dataright = auxNode->right->dataleft;
+                                auxNode->right->dataleft = NULL;
+                                auxNode->dataright = NULL;
+                                free(auxNode->right);
+                                auxNode->dataright = NULL;
+                                return aux;
+                            }
+                        }
+                        // continua subindo
+                        else {
+                            auxNode->left->dataright = auxNode->middle->dataleft;
+                            auxNode->middle->dataleft = NULL;
+                            free(auxNode->middle);
+                            auxNode->middle = NULL;
+                            // continua >>>
+                        }
+                    }
+                }
+            }
+        }
+        //remove dataleft
+        else {
+            aux = (*root)->dataleft;
+            auxNode = (*root);
+            ////////////////////////////////////////////// BUSCA O MAIOR auxNode->left
+            auxNode = auxNode->left;
+            while(auxNode->left != NULL) {
+                if(auxNode->dataright != NULL) {
+                    auxNode = auxNode->right;
+                }
+                else {
+                    auxNode = auxNode->middle;
+                }
+            }
+            if(auxNode->dataright != NULL) {
+                (*root)->dataleft = auxNode->dataright;
+            }
+            else {
+                (*root)->dataleft = auxNode->dataleft; 
+            }
+            if(auxNode->dataright != NULL) {
+                auxNode->dataright = NULL;
+                return aux;
+            }
+            else {
+                auxNode->dataleft = NULL;
+                // subindo pela direita
+                if(auxNode->root->right == auxNode) {
+                    auxNode = auxNode->root;
+                    if(auxNode->middle->dataright != NULL) {
+                        auxNode->right->dataleft = auxNode->dataright;
+                        auxNode->dataright = auxNode->middle->dataright;
+                        auxNode->middle->dataright = NULL;
+                        return aux;
+                    }
+                    else {
+                        auxNode->middle->dataright = auxNode->dataright;
+                        auxNode->dataright = NULL;
+                        free(auxNode->right);
+                        auxNode->dataright = NULL;
+                        return aux;;
+                    }
+                }
+                // subindo pelo meio
+                else {
+                    auxNode = auxNode->root;
+                    if(auxNode->dataright != NULL) {
+                        auxNode->middle->dataleft = auxNode->dataright;
+                        if(auxNode->right->dataright != NULL) {
+                            auxNode->dataright = auxNode->right->dataleft;
+                            auxNode->right->dataleft = auxNode->right->dataright;
+                            auxNode->right->dataright = NULL;
+                            return aux;
+                        }
+                        else {
+                            auxNode->middle->dataright = auxNode->right->dataleft;
+                            auxNode->right->dataleft = NULL;
+                            auxNode->dataright = NULL;
+                            free(auxNode->right);
+                            auxNode->right = NULL;
+                            return aux;
+                        }
+                    }
+                    else {
+                        if(auxNode->left->dataright != NULL) {
+                            auxNode->middle->dataleft = auxNode->dataleft;
+                            auxNode->dataleft = auxNode->left->dataright;
+                            auxNode->left->dataright = NULL;
+                            return aux;
+                        }
+                        // continua subindo
+                        else {
+                            auxNode->left->dataright = auxNode->middle->dataleft;
+                            auxNode->middle->dataleft = NULL;
+                            free(auxNode->middle);
+                            auxNode->middle = NULL;
+                            //continua >>>
+                        }
+                    }
+                }
+            }          
+        }
+    }
+    // continuando >>>
+    if(auxNode != NULL) {
+        TreeNode *auxRoot;
+        while(auxNode->root != NULL) {
+            auxRoot = auxNode->root;
+            //subindo pela esquerda
+            if(auxRoot->left == auxNode) {
+                if(auxRoot->middle->dataright != NULL) {
+                    auxNode->dataleft = auxRoot->dataleft;
+                    auxRoot->dataleft = auxRoot->middle->dataleft;
+                    auxRoot->middle->dataleft = auxRoot->middle->dataright;
+                    auxRoot->middle->dataright = NULL;
+                    auxNode->middle = auxRoot->middle->left;
+                    auxNode->middle->left->root = auxNode->middle;
+                    auxRoot->middle->left = auxRoot->middle->middle;
+                    auxRoot->middle->middle = auxRoot->middle->right;
+                    auxRoot->middle->right = NULL;
+                    return aux;
+                }
+                else {
+                    auxNode->dataleft = auxRoot->dataleft;
+                    auxNode->dataright = auxRoot->middle->dataleft;
+                    auxRoot->middle->dataleft = NULL;
+                    auxNode->middle = auxRoot->middle->left;
+                    auxRoot->middle->left = NULL;
+                    auxNode->right = auxRoot->middle->middle;
+                    auxRoot->middle->middle = NULL;
+                    free(auxRoot->middle);
+                    if(auxRoot->dataright != NULL) {
+                        auxRoot->dataleft = auxRoot->dataright;
+                        auxRoot->dataright = NULL;
+                        auxRoot->middle = auxRoot->right;
+                        auxRoot->right = NULL;
+                        return aux;
+                    }
+                    else{
+                        auxRoot->middle = NULL;
+                        auxNode = auxRoot; //?????????????????????????????????? PARADA
+                    }
+                }
+            }
+            //subindo pela direita
+            else if(auxRoot->right == auxNode) {
+                if(auxRoot->middle->dataright != NULL) {
+                    auxNode->dataleft = auxRoot->dataright;
+                    auxRoot->dataright = auxRoot->middle->dataright;
+                    auxRoot->middle->dataright = NULL;
+                    auxNode->middle = auxNode->left;
+                    auxNode->left = auxRoot->middle->right;
+                    auxRoot->middle->right = NULL;
+                    auxNode->left->root = auxNode;
+                    return aux;
+                }
+                else {
+                    auxRoot->middle->dataright = auxRoot->dataright;
+                    auxRoot->dataright = NULL;
+                    auxRoot->middle->right = auxNode->left;
+                    auxRoot->middle->right->root = auxRoot->middle;
+                    auxNode->left = NULL;
+                    free(auxNode);
+                    auxRoot->right = NULL;
+                    return aux;
+                }
+            }
+            //subindo pelo meio
+            else {
+                if(auxRoot->left->dataright != NULL) {
+                    auxNode->dataleft = auxRoot->dataleft;
+                    auxRoot->dataleft = auxRoot->left->dataright;
+                    auxRoot->left->dataright = NULL;
+                    auxNode->middle = auxNode->left;
+                    auxNode->left = auxRoot->left->right;
+                    auxRoot->left->right = NULL;
+                    auxNode->left->root = auxNode;
+                    return aux;
+                }
+                else {
+                    auxRoot->left->dataright = auxRoot->dataleft;
+                    auxRoot->left->right = auxNode->left;
+                    auxNode->left = NULL;
+                    free(auxRoot->middle);
+                    if(auxRoot->dataright != NULL) {
+                        auxRoot->dataleft = auxRoot->dataright;
+                        auxRoot->dataright = NULL;
+                        auxRoot->middle = auxRoot->right;
+                        auxRoot->right = NULL;
+                        return aux;
+                    }
+                    else{
+                        auxRoot->middle = NULL;
+                        auxNode = auxRoot; //?????????????????????????????????? PARADA
+                    }
+                }
+            }
+        }
+    }
+    //////////////////////////////////////////// AQUI ESTA A PARADA
+    if (auxNode == NULL) {
+        auxNode->left->root = NULL;
+        treeRoot = &auxNode->left;
+        auxNode->left = NULL;
+        free(auxNode);
+        auxNode = NULL;
+        return aux;
+    }
+    return NULL;
 }
-*/
 
 int find(TreeNode *root, void *key, TreeComparator f, void **element) {
     if(root == NULL) return 0;
@@ -297,7 +660,20 @@ int height (TreeNode *root) {
         return -1;
     }
     else {
-        return 1 + height(root->left);
+        int hl, hm, hr;
+        hl = height(root->left);
+        hm = height(root->middle);
+        hr = height(root->right);
+        if (hl >= hm && hl >= hr) {
+            return 1 + hl;
+        }
+        else if(hm >= hr) {
+            return 1 + hm;
+        }
+        else {
+            return 1 + hr;
+        }
+        
     }
 }
 

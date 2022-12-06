@@ -254,7 +254,6 @@ void* removeSplit(TreeNode **treeRoot, TreeNode **root, void *key, TreeComparato
     }
     //e folha
     else if((*root)->left == NULL) {
-        printf("\n CHEGUEI \n\n");
         // remove dataright
         if(compleft != 0) {
             aux = (*root)->dataright;
@@ -289,7 +288,7 @@ void* removeSplit(TreeNode **treeRoot, TreeNode **root, void *key, TreeComparato
                         auxNode->dataright = NULL;
                         free(auxNode->right);
                         auxNode->right = NULL;
-                        return aux;;
+                        return aux;
                     }
                 }
                 // subindo pela esquerda
@@ -708,8 +707,6 @@ void* removeSplit(TreeNode **treeRoot, TreeNode **root, void *key, TreeComparato
             return aux;
         }
     }
-    printf("\n CHEGUEI \n\n");
-    printf("\n CHEGUEI NULL \n\n");
     return NULL;
 }
 

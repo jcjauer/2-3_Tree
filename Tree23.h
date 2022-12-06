@@ -56,6 +56,7 @@ TreeNode *newNode();
 - Equilibra a arvore
 *
 - Argumentos: 
+- - treeRoot: O endereço do ponteiro da raiz da árvore principal
 - - root: O endereço do ponteiro da raiz da árvore/subárvore
 - - element: o elemento a ser adicionado
 - - f: a função para comparação dos elementos
@@ -69,6 +70,7 @@ int split(TreeNode **treeRoot, TreeNode **root,  void **element, TreeComparator 
 - Ecolhe a mediana
 *
 - Argumentos: 
+- - treeRoot: O endereço do ponteiro da raiz da árvore principal
 - - root: o endereço do ponteiro da raiz da árvore/subárvore
 - - element: o endereço do elemento para as devidas alterações
 - - f: a função para comparação dos elementos
@@ -82,6 +84,7 @@ void chooseElement(TreeNode *root, void **element, TreeComparator f);
 - Remove um elemento na árvore
 *
 - Argumentos: 
+- - treeRoot: O endereço do ponteiro da raiz da árvore principal
 - - root: A raiz da árvore/subárvore
 - - key: o elemento a ser localizado e removido
 - - f: a função para comparação dos elementos
@@ -95,6 +98,7 @@ void* removeTreeNode(TreeNode **treeRoot, TreeNode **root, void *key, TreeCompar
 - Ajuda a remover um elemento na árvore
 *
 - Argumentos: 
+- - treeRoot: O endereço do ponteiro da raiz da árvore principal
 - - root: A raiz da árvore/subárvore
 - - key: o elemento a ser localizado e removido
 - - f: a função para comparação dos elementos

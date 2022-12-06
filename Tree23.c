@@ -232,8 +232,8 @@ void* removeSplit(TreeNode **treeRoot, TreeNode **root, void *key, TreeComparato
     int compleft = f(key, (*root)->dataleft);
     void *aux = NULL;
     TreeNode *auxNode = NULL;
-    //e raiz
-    if((*root)->root == NULL) {
+    //e raiz e não tem folhas
+    if((*root)->root == NULL && (*root)->left == NULL) {
         if(compleft != 0) {
             aux = (*root)->dataright;
             (*root)->dataright = NULL;
@@ -241,12 +241,20 @@ void* removeSplit(TreeNode **treeRoot, TreeNode **root, void *key, TreeComparato
         }
         else {
             aux = (*root)->dataleft;
-            (*root)->dataleft = NULL;
-            return aux;
+            if((*root)->dataright != NULL) {
+                (*root)->dataleft = (*root)->dataright;
+                (*root)->dataright = NULL;
+                return aux;
+            }
+            else {
+                (*root)->dataleft = NULL;
+                return aux; 
+            }
         }
     }
     //e folha
-    if((*root)->left == NULL) {
+    else if((*root)->left == NULL) {
+        printf("\n CHEGUEI \n\n");
         // remove dataright
         if(compleft != 0) {
             aux = (*root)->dataright;
@@ -382,8 +390,25 @@ void* removeSplit(TreeNode **treeRoot, TreeNode **root, void *key, TreeComparato
             }
             else {
                 auxNode->dataleft = NULL;
+                // subindo pela direita
+                if(auxNode->root->right == auxNode) {
+                    auxNode = auxNode->root;
+                    if(auxNode->middle->dataright != NULL) {
+                        auxNode->right->dataleft = auxNode->dataright;
+                        auxNode->dataright = auxNode->middle->dataright;
+                        auxNode->middle->dataright = NULL;
+                        return aux;
+                    }
+                    else {
+                        auxNode->middle->dataright = auxNode->dataright;
+                        auxNode->dataright = NULL;
+                        free(auxNode->right);
+                        auxNode->right = NULL;
+                        return aux;;
+                    }
+                }
                 // subindo pela esquerda
-                if(auxNode->root->left == auxNode) {
+                else if(auxNode->root->left == auxNode) {
                     auxNode = auxNode->root;
                     auxNode->left->dataleft = auxNode->dataleft;
                     if(auxNode->middle->dataright != NULL) {
@@ -421,6 +446,43 @@ void* removeSplit(TreeNode **treeRoot, TreeNode **root, void *key, TreeComparato
                         }
                     }
                 }
+                // subindo pelo meio
+                else {
+                    auxNode = auxNode->root;
+                    if(auxNode->dataright != NULL) {
+                        auxNode->middle->dataleft = auxNode->dataright;
+                        if(auxNode->right->dataright != NULL) {
+                            auxNode->dataright = auxNode->right->dataleft;
+                            auxNode->right->dataleft = auxNode->right->dataright;
+                            auxNode->right->dataright = NULL;
+                            return aux;
+                        }
+                        else {
+                            auxNode->middle->dataright = auxNode->right->dataleft;
+                            auxNode->right->dataleft = NULL;
+                            auxNode->dataright = NULL;
+                            free(auxNode->right);
+                            auxNode->right = NULL;
+                            return aux;
+                        }
+                    }
+                    else {
+                        if(auxNode->left->dataright != NULL) {
+                            auxNode->middle->dataleft = auxNode->dataleft;
+                            auxNode->dataleft = auxNode->left->dataright;
+                            auxNode->left->dataright = NULL;
+                            return aux;
+                        }
+                        // continua subindo
+                        else {
+                            auxNode->left->dataright = auxNode->middle->dataleft;
+                            auxNode->middle->dataleft = NULL;
+                            free(auxNode->middle);
+                            auxNode->middle = NULL;
+                            //continua >>>
+                        }
+                    }
+                }
             }
         }
         //remove dataleft
@@ -439,15 +501,11 @@ void* removeSplit(TreeNode **treeRoot, TreeNode **root, void *key, TreeComparato
             }
             if(auxNode->dataright != NULL) {
                 (*root)->dataleft = auxNode->dataright;
-            }
-            else {
-                (*root)->dataleft = auxNode->dataleft; 
-            }
-            if(auxNode->dataright != NULL) {
                 auxNode->dataright = NULL;
                 return aux;
             }
             else {
+                (*root)->dataleft = auxNode->dataleft; 
                 auxNode->dataleft = NULL;
                 // subindo pela direita
                 if(auxNode->root->right == auxNode) {
@@ -462,8 +520,47 @@ void* removeSplit(TreeNode **treeRoot, TreeNode **root, void *key, TreeComparato
                         auxNode->middle->dataright = auxNode->dataright;
                         auxNode->dataright = NULL;
                         free(auxNode->right);
-                        auxNode->dataright = NULL;
+                        auxNode->right = NULL;
                         return aux;;
+                    }
+                }
+                // subindo pela esquerda
+                else if(auxNode->root->left == auxNode) {
+                    auxNode = auxNode->root;
+                    auxNode->left->dataleft = auxNode->dataleft;
+                    if(auxNode->middle->dataright != NULL) {
+                        auxNode->dataleft = auxNode->middle->dataleft;
+                        auxNode->middle->dataleft = auxNode->middle->dataright;
+                        auxNode->middle->dataright = NULL;
+                        return aux;
+                    }
+                    else {
+                        if(auxNode->dataright != NULL) {
+                            auxNode->dataleft = auxNode->middle->dataleft;
+                            auxNode->middle->dataleft = auxNode->dataright;
+                            if(auxNode->right->dataright != NULL) {
+                                auxNode->dataright = auxNode->right->dataleft;
+                                auxNode->right->dataleft = auxNode->right->dataright;
+                                auxNode->right->dataright = NULL;
+                                return aux;
+                            }
+                            else {
+                                auxNode->middle->dataright = auxNode->right->dataleft;
+                                auxNode->right->dataleft = NULL;
+                                auxNode->dataright = NULL;
+                                free(auxNode->right);
+                                auxNode->dataright = NULL;
+                                return aux;
+                            }
+                        }
+                        // continua subindo
+                        else {
+                            auxNode->left->dataright = auxNode->middle->dataleft;
+                            auxNode->middle->dataleft = NULL;
+                            free(auxNode->middle);
+                            auxNode->middle = NULL;
+                            // continua >>>
+                        }
                     }
                 }
                 // subindo pelo meio
@@ -601,16 +698,18 @@ void* removeSplit(TreeNode **treeRoot, TreeNode **root, void *key, TreeComparato
                 }
             }
         }
+        //////////////////////////////////////////// AQUI ESTA A PARADA
+        if (auxNode->root == NULL) {
+            auxNode->left->root = NULL;
+            *treeRoot = auxNode->left;
+            auxNode->left = NULL;
+            free(auxNode);
+            auxNode = NULL;
+            return aux;
+        }
     }
-    //////////////////////////////////////////// AQUI ESTA A PARADA
-    if (auxNode == NULL) {
-        auxNode->left->root = NULL;
-        treeRoot = &auxNode->left;
-        auxNode->left = NULL;
-        free(auxNode);
-        auxNode = NULL;
-        return aux;
-    }
+    printf("\n CHEGUEI \n\n");
+    printf("\n CHEGUEI NULL \n\n");
     return NULL;
 }
 

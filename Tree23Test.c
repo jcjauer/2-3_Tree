@@ -76,13 +76,18 @@ int main () {
                 if(aux != NULL) {
                     TreeElement *auxRemoveNode = (TreeElement *) aux;
                     printf("Elemento encontrado: "); printInteger(auxRemoveNode); printf(". Removido.\n");
-                    aux = NULL;
                     free(auxRemoveNode);
                     auxRemoveNode = NULL;
                 }
                 else {
                     printf("Elemento não removido ou inexistente.\n");
                 }
+                free(element);
+                element = NULL;
+                printf("Altura da árvore: %d\n", height(root));
+                printf("Árvore:\n");
+                show(root, printInteger);
+                printf("\n");
                 break;
             case 4 :
                 printf("Altura da árvore: %d\n", height(root));
